@@ -6,7 +6,7 @@
  @version $Revision: 1.0 $ $Date: 2018/10/01 22:15:25 $
  **/
 
-package edu.gvsu.cis.convcalc;
+package com.conversionappandroid;
 
 import java.util.HashMap;
 
