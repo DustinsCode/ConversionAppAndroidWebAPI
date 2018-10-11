@@ -32,7 +32,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="From Unit"
-            android:inputType="numberDecimal" />
+            android:inputType="numberSigned|numberDecimal" />
 
         <TextView
             android:id="@+id/FromLabel"
@@ -60,7 +60,7 @@
             android:layout_weight="1"
             android:ems="10"
             android:hint="To Unit"
-            android:inputType="numberDecimal" />
+            android:inputType="numberSigned|numberDecimal" />
 
         <TextView
             android:id="@+id/ToLabel"
