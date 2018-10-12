@@ -1,7 +1,10 @@
 package com.conversionappandroid;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -18,8 +21,52 @@ public class MainActivity extends AppCompatActivity {
 
     boolean isLength = true;
 
+    public static final int SETTINGS_REQUEST = 1;
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        if(item.getItemId() == R.id.settingsButton) {
+            Intent intent = new Intent(MainActivity.this, Settings.class);
+
+            //Makes current mode known for selection in Settings
+            intent.putExtra("isLength", isLength);
+
+            startActivityForResult(intent, SETTINGS_REQUEST);
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data){
+        if(resultCode == SETTINGS_REQUEST){
+            //Change labels
+            String from = data.getStringExtra("from");
+            String to = data.getStringExtra("to");
+
+            TextView fromLabel = findViewById(R.id.FromLabel);
+            TextView toLabel = findViewById(R.id.ToLabel);
+            fromLabel.setText(from);
+            toLabel.setText(to);
+
+            if(isLength){
+                fromLen = UnitsConverter.LengthUnits.valueOf(from);
+                toLen = UnitsConverter.LengthUnits.valueOf(to);
+            }else{
+                fromVol = UnitsConverter.VolumeUnits.valueOf(from);
+                toVol = UnitsConverter.VolumeUnits.valueOf(to);
+            }
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,11 +89,31 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        fromField.setOnFocusChangeListener(new View.OnFocusChangeListener(){
+            @Override
+            public void onFocusChange(View v, boolean hasFocus){
+                if(hasFocus) {
+                    toField.setText("");
+                }
+            }
+        });
+
+        toField.setOnFocusChangeListener(new View.OnFocusChangeListener(){
+            @Override
+            public void onFocusChange(View v, boolean hasFocus){
+                if(hasFocus) {
+                    fromField.setText("");
+                }
+            }
+        });
+
         fromField.setOnClickListener(v ->{
+            System.out.println("from");
             toField.setText("");
         });
 
         toField.setOnClickListener(v ->{
+            System.out.println("to");
             fromField.setText("");
         });
 
@@ -100,6 +167,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+
+
     }
 
 

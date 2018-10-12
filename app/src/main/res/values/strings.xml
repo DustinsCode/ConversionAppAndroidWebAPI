@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">ConversionAppAndroid</string>
+    <string name="title_activity_settings">Settings</string>
+    <string-array name="Lengths">
+        <item>Yards</item>
+        <item>Meters</item>
+        <item>Miles</item>
+    </string-array>
+    <string-array name="Volumes">
+        <item>Gallons</item>
+        <item>Liters</item>
+        <item>Quarts</item>
+    </string-array>
 </resources>
