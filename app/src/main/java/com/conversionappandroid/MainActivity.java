@@ -1,9 +1,11 @@
 package com.conversionappandroid;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -20,12 +22,31 @@ public class MainActivity extends AppCompatActivity {
 
     boolean isLength = true;
 
+    public static final int FROMSELECTION = 1;
+    public static final int TOSELECTION = 1;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        if(item.getItemId() == R.id.settingsButton) {
+            Intent intent = new Intent(MainActivity.this, Settings.class);
+
+            //Makes current mode known for selection in Settings
+            intent.putExtra("isLength", isLength);
+
+            //TODO: Find a way to get both from and to variables to be acknowledged?
+            startActivityForResult(intent, FROMSELECTION);
+            //startActivityForResult(intent, TOSELECTION);
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -107,6 +128,8 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
+
+
     }
 
 
