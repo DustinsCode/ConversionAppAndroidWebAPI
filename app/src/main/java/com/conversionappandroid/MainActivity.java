@@ -11,6 +11,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.conversionappandroid.dummy.HistoryContent;
+
+import org.joda.time.DateTime;
+
 public class MainActivity extends AppCompatActivity {
 
     UnitsConverter.VolumeUnits fromVol = UnitsConverter.VolumeUnits.Gallons;
@@ -22,7 +26,14 @@ public class MainActivity extends AppCompatActivity {
     boolean isLength = true;
 
     public static final int SETTINGS_REQUEST = 1;
+    public static final int HISTORY_RESULT = 2;
 
+    //text fields
+    EditText fromField;
+    EditText toField;
+    //Labels
+    TextView fromLabel;
+    TextView toLabel;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -42,12 +53,17 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, SETTINGS_REQUEST);
 
             return true;
+        }else if(item.getItemId() == R.id.action_history) {
+            Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
+            startActivityForResult(intent, HISTORY_RESULT );
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data){
+
         if(resultCode == SETTINGS_REQUEST){
             //Change labels
             String from = data.getStringExtra("from");
@@ -65,6 +81,23 @@ public class MainActivity extends AppCompatActivity {
                 fromVol = UnitsConverter.VolumeUnits.valueOf(from);
                 toVol = UnitsConverter.VolumeUnits.valueOf(to);
             }
+        }else if (resultCode == HISTORY_RESULT) {
+            String[] vals = data.getStringArrayExtra("item");
+            this.fromField.setText(vals[0]);
+            this.toField.setText(vals[1]);
+
+            this.isLength = (vals[2].equals("Length"));
+            if(isLength){
+                fromLen = UnitsConverter.LengthUnits.valueOf(vals[3]);
+                toLen = UnitsConverter.LengthUnits.valueOf(vals[4]);
+            }else{
+                fromVol = UnitsConverter.VolumeUnits.valueOf(vals[3]);
+                toVol = UnitsConverter.VolumeUnits.valueOf(vals[4]);
+            }
+            this.fromLabel.setText(vals[3]);
+            this.toLabel.setText(vals[4]);
+//            this.title.setText(mode.toString() + " Converter");
+
         }
     }
 
@@ -80,12 +113,12 @@ public class MainActivity extends AppCompatActivity {
         Button modeButton = findViewById(R.id.ModeButton);
 
         //Text fields
-        EditText fromField = findViewById(R.id.FromField);
-        EditText toField = findViewById(R.id.ToField);
+        this.fromField = findViewById(R.id.FromField);
+        this.toField = findViewById(R.id.ToField);
 
         //Labels
-        TextView fromLabel = findViewById(R.id.FromLabel);
-        TextView toLabel = findViewById(R.id.ToLabel);
+        this.fromLabel = findViewById(R.id.FromLabel);
+        this.toLabel = findViewById(R.id.ToLabel);
 
 
 
@@ -138,9 +171,10 @@ public class MainActivity extends AppCompatActivity {
 
         calcButton.setOnClickListener(v -> {
             hideSoftKeyBoard();
-            double inVal;
-            double newVal;
+            double inVal=0;
+            double newVal=0;
             if(isLength) {
+                String mode = "Length";
                 if(fromField.getText().toString().equals("") && !toField.getText().toString().equals("")){
                     inVal = Double.parseDouble(toField.getText().toString());
                     newVal = UnitsConverter.convert(inVal, toLen, fromLen);
@@ -152,7 +186,12 @@ public class MainActivity extends AppCompatActivity {
                     toField.setText(String.valueOf(newVal));
                     System.out.println(newVal);
                 }
+                // remember the calculation.
+                HistoryContent.HistoryItem item = new HistoryContent.HistoryItem(inVal, newVal, mode,
+                        toLen.toString(), fromLen.toString(), DateTime.now());
+                HistoryContent.addItem(item);
             }else{
+                String mode = "Volume";
                 if(fromField.getText().toString().equals("") && !toField.getText().toString().equals("")) {
                     inVal = Double.parseDouble(toField.getText().toString());
                     newVal = UnitsConverter.convert(inVal, toVol, fromVol);
@@ -164,7 +203,13 @@ public class MainActivity extends AppCompatActivity {
                     toField.setText(String.valueOf(newVal));
                     System.out.println(newVal);
                 }
+                // remember the calculation.
+                HistoryContent.HistoryItem item = new HistoryContent.HistoryItem(inVal, newVal, mode,
+                        toVol.toString(), fromVol.toString(), DateTime.now());
+                HistoryContent.addItem(item);
             }
+
+
 
         });
 

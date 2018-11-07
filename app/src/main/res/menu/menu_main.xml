@@ -9,4 +9,8 @@
         android:orderInCategory="100"
         android:title="@string/title_activity_settings"
         app:showAsAction="never" />
+    <item android:title="History"
+        android:id="@+id/action_history"
+        app:showAsAction="never" />
+
 </menu>
