@@ -34,8 +34,10 @@ public class HistoryContent {
         public final String mode;
         public final String fromUnits;
         public final String toUnits;
+        public String _key;
 
-        public final DateTime timestamp;
+
+        public final String timestamp;
 
         public HistoryItem(Double fromVal, Double toVal, String mode,
                            String fromUnits, String toUnits, DateTime timestamp) {
@@ -44,7 +46,7 @@ public class HistoryContent {
             this.mode = mode;
             this.fromUnits = fromUnits;
             this.toUnits = toUnits;
-            this.timestamp = timestamp;
+            this.timestamp = timestamp.toString();
         }
 
         @Override

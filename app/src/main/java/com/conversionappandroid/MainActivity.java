@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.conversionappandroid.dummy.HistoryContent;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.joda.time.DateTime;
 
@@ -34,6 +36,15 @@ public class MainActivity extends AppCompatActivity {
     //Labels
     TextView fromLabel;
     TextView toLabel;
+
+    //Firebase stuff
+    DatabaseReference topRef;
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        topRef = FirebaseDatabase.getInstance().getReference();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
