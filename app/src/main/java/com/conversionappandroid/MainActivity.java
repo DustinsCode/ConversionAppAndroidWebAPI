@@ -12,10 +12,18 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.conversionappandroid.dummy.HistoryContent;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,12 +47,57 @@ public class MainActivity extends AppCompatActivity {
 
     //Firebase stuff
     DatabaseReference topRef;
+    public static List<HistoryContent.HistoryItem> allHistory;
 
     @Override
     public void onResume(){
         super.onResume();
-        topRef = FirebaseDatabase.getInstance().getReference();
+        allHistory.clear();
+        topRef = FirebaseDatabase.getInstance().getReference("history");
+        topRef.addChildEventListener (chEvListener);
     }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        topRef.removeEventListener(chEvListener);
+    }
+
+    private ChildEventListener chEvListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            HistoryContent.HistoryItem entry = (HistoryContent.HistoryItem) dataSnapshot.getValue(HistoryContent.HistoryItem.class);
+            entry._key = dataSnapshot.getKey();
+            allHistory.add(entry);
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+            HistoryContent.HistoryItem entry =
+                    (HistoryContent.HistoryItem) dataSnapshot.getValue(HistoryContent.HistoryItem.class);
+            List<HistoryContent.HistoryItem> newHistory = new ArrayList<HistoryContent.HistoryItem>();
+            for (HistoryContent.HistoryItem t : allHistory) {
+                if (!t._key.equals(dataSnapshot.getKey())) {
+                    newHistory.add(t);
+                }
+            }
+            allHistory = newHistory;
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -107,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
             }
             this.fromLabel.setText(vals[3]);
             this.toLabel.setText(vals[4]);
-//            this.title.setText(mode.toString() + " Converter");
 
         }
     }
@@ -131,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
         this.fromLabel = findViewById(R.id.FromLabel);
         this.toLabel = findViewById(R.id.ToLabel);
 
+        //Firebase stuff
+        allHistory = new ArrayList<HistoryContent.HistoryItem>();
 
 
         fromField.setOnFocusChangeListener(new View.OnFocusChangeListener(){
@@ -197,10 +251,13 @@ public class MainActivity extends AppCompatActivity {
                     toField.setText(String.valueOf(newVal));
                     System.out.println(newVal);
                 }
-                // remember the calculation.
-                HistoryContent.HistoryItem item = new HistoryContent.HistoryItem(inVal, newVal, mode,
-                        toLen.toString(), fromLen.toString(), DateTime.now());
+                //Persist the calculation to firebase
+                DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
+                HistoryContent.HistoryItem item = new HistoryContent.HistoryItem(inVal, newVal, mode.toString(),
+                        fromLen.toString(), toLen.toString(), DateTime.now());
                 HistoryContent.addItem(item);
+                topRef.push().setValue(item);
+
             }else{
                 String mode = "Volume";
                 if(fromField.getText().toString().equals("") && !toField.getText().toString().equals("")) {
@@ -214,17 +271,15 @@ public class MainActivity extends AppCompatActivity {
                     toField.setText(String.valueOf(newVal));
                     System.out.println(newVal);
                 }
-                // remember the calculation.
-                HistoryContent.HistoryItem item = new HistoryContent.HistoryItem(inVal, newVal, mode,
-                        toVol.toString(), fromVol.toString(), DateTime.now());
+
+                //Persist the calculation to firebase
+                DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
+                HistoryContent.HistoryItem item = new HistoryContent.HistoryItem(inVal, newVal, mode.toString(),
+                        fromVol.toString(), toVol.toString(), DateTime.now());
                 HistoryContent.addItem(item);
+                topRef.push().setValue(item);
             }
-
-
-
         });
-
-
     }
 
 
@@ -240,6 +295,4 @@ public class MainActivity extends AppCompatActivity {
             imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         }
     }
-
-
 }
