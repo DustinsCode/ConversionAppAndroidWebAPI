@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             HistoryContent.HistoryItem entry = (HistoryContent.HistoryItem) dataSnapshot.getValue(HistoryContent.HistoryItem.class);
+            assert entry != null;
             entry._key = dataSnapshot.getKey();
             allHistory.add(entry);
         }
