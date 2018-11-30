@@ -1,17 +1,24 @@
 package com.conversionappandroid;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.conversionappandroid.dummy.HistoryContent;
+import com.conversionappandroid.webservice.WeatherService;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -24,6 +31,8 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.conversionappandroid.webservice.WeatherService.BROADCAST_WEATHER;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,6 +47,13 @@ public class MainActivity extends AppCompatActivity {
     public static final int SETTINGS_REQUEST = 1;
     public static final int HISTORY_RESULT = 2;
 
+
+    //WEATHER STUFF
+    public static final String TAG = "Main Receiver";
+    TextView current;
+    ImageView iconView;
+    TextView tempView;
+
     //text fields
     EditText fromField;
     EditText toField;
@@ -45,9 +61,29 @@ public class MainActivity extends AppCompatActivity {
     TextView fromLabel;
     TextView toLabel;
 
+
+
     //Firebase stuff
     DatabaseReference topRef;
     public static List<HistoryContent.HistoryItem> allHistory;
+
+    private BroadcastReceiver weatherReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras();
+            double temp = bundle.getDouble("TEMPERATURE");
+            String summary = bundle.getString("SUMMARY");
+            String icon = bundle.getString("ICON").replaceAll("-", "_");
+            String key = bundle.getString("KEY");
+            int resID = getResources().getIdentifier(icon , "drawable", getPackageName());
+            //setWeatherViews(View.VISIBLE);
+            if (key.equals("p1"))  {
+                current.setText(summary);
+                tempView.setText(Double.toString(temp));
+                iconView.setImageResource(resID);
+            }
+        }
+    };
 
     @Override
     public void onResume(){
@@ -55,12 +91,15 @@ public class MainActivity extends AppCompatActivity {
         allHistory.clear();
         topRef = FirebaseDatabase.getInstance().getReference("history");
         topRef.addChildEventListener (chEvListener);
+        IntentFilter weatherFilter = new IntentFilter(BROADCAST_WEATHER);
+        LocalBroadcastManager.getInstance(this).registerReceiver(weatherReceiver, weatherFilter);
     }
 
     @Override
     public void onPause(){
         super.onPause();
         topRef.removeEventListener(chEvListener);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(weatherReceiver);
     }
 
     private ChildEventListener chEvListener = new ChildEventListener() {
@@ -165,6 +204,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -183,6 +226,10 @@ public class MainActivity extends AppCompatActivity {
         //Labels
         this.fromLabel = findViewById(R.id.FromLabel);
         this.toLabel = findViewById(R.id.ToLabel);
+
+        this.current = findViewById(R.id.currentTextView);
+        this.tempView = findViewById(R.id.tempTextView);
+        this.iconView = findViewById(R.id.weatherIcon);
 
         //Firebase stuff
         allHistory = new ArrayList<HistoryContent.HistoryItem>();
@@ -237,6 +284,10 @@ public class MainActivity extends AppCompatActivity {
 
         calcButton.setOnClickListener(v -> {
             hideSoftKeyBoard();
+
+            WeatherService.startGetWeather(this, "42.963686", "-85.888595", "p1");
+
+
             double inVal=0;
             double newVal=0;
             if(isLength) {
